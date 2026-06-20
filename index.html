@@ -8,423 +8,788 @@
 <meta name="theme-color" content="#0b0d10" />
 <link rel="apple-touch-icon" href="icon-192.png" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  html, body {
-    width: 100%; height: 100%;
-    background: #0b0d10; color: #eee;
-    font-family: -apple-system, Roboto, Arial, sans-serif;
-    overflow: hidden;
-    -webkit-user-select: none; user-select: none;
-  }
-  #app { position: relative; width: 100%; height: 100%; }
-  video, canvas#overlay {
-    position: absolute; top: 0; left: 0;
-    width: 100%; height: 100%;
-    object-fit: cover;
-  }
-  video { transform: scaleX(1); }
-
-  #topbar {
-    position: absolute; top: 0; left: 0; right: 0;
-    display: flex; justify-content: space-between; align-items: center;
-    padding: env(safe-area-inset-top, 12px) 14px 8px 14px;
-    background: linear-gradient(180deg, rgba(0,0,0,.55), rgba(0,0,0,0));
-    z-index: 10;
-  }
-  #topbar h1 { font-size: 15px; font-weight: 600; letter-spacing: .3px; }
-  #status { font-size: 11px; color: #9aa; }
-
-  #panel {
-    position: absolute; bottom: 0; left: 0; right: 0;
-    background: rgba(15,17,20,.92);
-    border-top: 1px solid #2a2d33;
-    padding: 10px 14px calc(env(safe-area-inset-bottom, 10px) + 10px) 14px;
-    z-index: 10;
-  }
-  .angles {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 8px;
-    margin-bottom: 10px;
-  }
-  .ang-card {
-    background: #1a1d22;
-    border: 1px solid #2a2d33;
-    border-radius: 10px;
-    padding: 8px 10px;
-  }
-  .ang-card .lbl { font-size: 11px; color: #9aa; }
-  .ang-card .val { font-size: 20px; font-weight: 700; color: #ff8a3d; }
-  .ang-card .ref { font-size: 10px; color: #6c7078; }
-  .ang-card.ok .val { color: #5dcaa5; }
-  .ang-card.warn .val { color: #e24b4a; }
-
-  #controls { display: flex; gap: 8px; }
-  button {
-    flex: 1;
-    background: #ff8a3d; color: #1a1100;
-    border: none; border-radius: 10px;
-    padding: 12px 8px; font-size: 14px; font-weight: 700;
-    -webkit-tap-highlight-color: transparent;
-  }
-  button.secondary { background: #2a2d33; color: #eee; }
-  button:disabled { opacity: .45; }
-
-  #side {
-    position: absolute; top: 0; right: 0; bottom: 0;
-    width: 78px;
-    display: flex; flex-direction: column; align-items: center;
-    justify-content: center; gap: 10px;
-    z-index: 9; pointer-events: none;
-  }
-  .sidebtn {
-    pointer-events: all;
-    width: 56px; height: 56px; border-radius: 50%;
-    background: rgba(20,22,26,.78); border: 1px solid #2a2d33;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 20px; color: #eee;
-  }
-
-  #captureFlash {
-    position: absolute; inset: 0; background: #fff; opacity: 0;
-    pointer-events: none; z-index: 20;
-  }
-
-  #log {
-    position: absolute; top: 50px; left: 14px;
-    max-width: 60%;
-    font-size: 11px; color: #9aa;
-    background: rgba(0,0,0,.4); padding: 4px 8px; border-radius: 6px;
-    z-index: 10; display: none;
-  }
-
-  #permScreen {
-    position: absolute; inset: 0; background: #0b0d10;
-    display: flex; flex-direction: column; align-items: center; justify-content: center;
-    gap: 14px; padding: 24px; text-align: center; z-index: 30;
-  }
-  #permScreen p { color: #9aa; font-size: 13px; line-height: 1.5; max-width: 280px; }
-  #permScreen button { width: 200px; }
-
-  #side-select {
-    position: absolute; top: 0; left: 0; right: 0; bottom: 0;
-    background: #0b0d10; display: flex; flex-direction: column;
-    align-items: center; justify-content: center; gap: 16px; z-index: 25;
-    padding: 24px;
-  }
-  #side-select h2 { font-size: 16px; font-weight: 600; }
-  #side-select .opts { display: flex; gap: 10px; }
-  #side-select .opt {
-    width: 120px; padding: 18px 10px; background: #1a1d22; border: 1px solid #2a2d33;
-    border-radius: 12px; text-align: center;
-  }
-  #side-select .opt .sym { font-size: 28px; margin-bottom: 6px; }
+  html, body { width:100%; height:100%; background:#0b0d10; color:#eee; font-family:-apple-system,Roboto,Arial,sans-serif; overflow:hidden; -webkit-user-select:none; user-select:none; }
+  #app { position:relative; width:100%; height:100%; }
+  video, canvas#overlay { position:absolute; top:0; left:0; width:100%; height:100%; object-fit:cover; }
+  #topbar { position:absolute; top:0; left:0; right:0; display:flex; justify-content:space-between; align-items:center; padding:env(safe-area-inset-top,12px) 14px 8px 14px; background:linear-gradient(180deg,rgba(0,0,0,.55),rgba(0,0,0,0)); z-index:10; }
+  #topbar h1 { font-size:15px; font-weight:600; }
+  #status { font-size:11px; color:#9aa; max-width:55%; text-align:right; }
+  #panel { position:absolute; bottom:0; left:0; right:0; background:rgba(15,17,20,.95); border-top:1px solid #2a2d33; padding:10px 14px calc(env(safe-area-inset-bottom,10px)+10px) 14px; z-index:10; max-height:64vh; overflow-y:auto; }
+  .angles { display:grid; grid-template-columns:repeat(2,1fr); gap:8px; margin-bottom:10px; }
+  .ang-card { background:#1a1d22; border:1px solid #2a2d33; border-radius:10px; padding:8px 10px; }
+  .ang-card .lbl { font-size:11px; color:#9aa; }
+  .ang-card .val { font-size:20px; font-weight:700; color:#ff8a3d; }
+  .ang-card .ref { font-size:10px; color:#6c7078; }
+  .ang-card.ok .val { color:#5dcaa5; }
+  .ang-card.warn .val { color:#e24b4a; }
+  #phaseBar { display:flex; gap:6px; margin-bottom:10px; flex-wrap:wrap; }
+  .phase { flex:1; min-width:70px; text-align:center; padding:8px 4px; background:#1a1d22; border:1px solid #2a2d33; border-radius:8px; font-size:10.5px; color:#9aa; }
+  .phase.active { border-color:#ff8a3d; color:#ff8a3d; }
+  .phase.done { border-color:#5dcaa5; color:#5dcaa5; }
+  #controls { display:flex; gap:8px; flex-wrap:wrap; }
+  button { flex:1; min-width:90px; background:#ff8a3d; color:#1a1100; border:none; border-radius:10px; padding:12px 8px; font-size:13px; font-weight:700; -webkit-tap-highlight-color:transparent; }
+  button.secondary { background:#2a2d33; color:#eee; }
+  button:disabled { opacity:.4; }
+  #side { position:absolute; top:0; right:0; bottom:0; width:78px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:10px; z-index:9; pointer-events:none; }
+  .sidebtn { pointer-events:all; width:56px; height:56px; border-radius:50%; background:rgba(20,22,26,.78); border:1px solid #2a2d33; display:flex; align-items:center; justify-content:center; font-size:18px; color:#eee; }
+  .screen { position:absolute; inset:0; background:#0b0d10; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:14px; padding:24px; text-align:center; z-index:30; overflow-y:auto; }
+  .screen h2 { font-size:17px; font-weight:600; }
+  .screen p { color:#9aa; font-size:13px; line-height:1.5; max-width:300px; }
+  .screen button { width:220px; }
+  .screen input { width:220px; padding:10px 12px; border-radius:8px; border:1px solid #2a2d33; background:#1a1d22; color:#eee; font-size:15px; text-align:center; }
+  .opts { display:flex; gap:10px; flex-wrap:wrap; justify-content:center; }
+  .opt { width:120px; padding:16px 10px; background:#1a1d22; border:1px solid #2a2d33; border-radius:12px; text-align:center; font-size:13px; }
+  .opt.sel { border-color:#ff8a3d; color:#ff8a3d; }
+  .opt .sym { font-size:26px; margin-bottom:6px; }
+  #calibTapHint { position:absolute; top:56px; left:0; right:0; text-align:center; font-size:12px; color:#ff8a3d; background:rgba(0,0,0,.5); padding:6px; z-index:11; }
+  #report { position:absolute; inset:0; background:#0b0d10; z-index:35; overflow-y:auto; padding:18px 16px calc(env(safe-area-inset-bottom,16px)+16px) 16px; }
+  #report h2 { font-size:18px; margin-bottom:12px; }
+  #report .sec { margin-bottom:16px; }
+  #report .sec h3 { font-size:14px; color:#ff8a3d; margin-bottom:6px; }
+  #report table { width:100%; font-size:13px; border-collapse:collapse; }
+  #report td { padding:5px 0; border-bottom:1px solid #1f2227; }
+  #report td.k { color:#9aa; }
+  #report td.v { text-align:right; font-weight:600; }
+  #report .note { font-size:12px; color:#6c7078; line-height:1.5; margin-top:4px; }
+  #report .closebtn { position:sticky; bottom:0; margin-top:14px; }
 </style>
 </head>
 <body>
 <div id="app">
   <video id="video" autoplay muted playsinline></video>
   <canvas id="overlay"></canvas>
-  <div id="captureFlash"></div>
-
-  <div id="topbar">
-    <h1>Bike Fit</h1>
-    <div id="status">Carregando modelo…</div>
-  </div>
-
-  <div id="log"></div>
-
+  <div id="topbar"><h1>Bike Fit</h1><div id="status">Carregando modelo…</div></div>
+  <div id="calibTapHint" style="display:none">Toque nas duas pontas do objeto de referência</div>
   <div id="side">
-    <div class="sidebtn" id="btnSwitchCam" role="button" aria-label="Trocar câmera">⟲</div>
-    <div class="sidebtn" id="btnSwitchSide" role="button" aria-label="Trocar lado">L/R</div>
+    <div class="sidebtn" id="btnSwitchCam">⟲</div>
+    <div class="sidebtn" id="btnSwitchSide">L/R</div>
   </div>
 
-  <div id="panel">
+  <div id="panel" style="display:none">
+    <div id="phaseBar">
+      <div class="phase" data-p="0">1. Selim</div>
+      <div class="phase" data-p="1">2. KOPS</div>
+      <div class="phase" data-p="2">3. Guidão</div>
+    </div>
     <div class="angles" id="angles">
-      <div class="ang-card" data-k="knee">
-        <div class="lbl">Joelho (extensão máx.)</div>
-        <div class="val" id="v-knee">--°</div>
-        <div class="ref">ideal 25–35°</div>
-      </div>
-      <div class="ang-card" data-k="hip">
-        <div class="lbl">Quadril (no pedal mais alto)</div>
-        <div class="val" id="v-hip">--°</div>
-        <div class="ref">ideal 40–50°</div>
-      </div>
-      <div class="ang-card" data-k="elbow">
-        <div class="lbl">Cotovelo</div>
-        <div class="val" id="v-elbow">--°</div>
-        <div class="ref">ideal 150–165°</div>
-      </div>
-      <div class="ang-card" data-k="torso">
-        <div class="lbl">Tronco (com horizontal)</div>
-        <div class="val" id="v-torso">--°</div>
-        <div class="ref">depende do estilo</div>
-      </div>
+      <div class="ang-card" data-k="knee"><div class="lbl">Joelho</div><div class="val" id="v-knee">--°</div><div class="ref" id="r-knee"></div></div>
+      <div class="ang-card" data-k="hip"><div class="lbl">Quadril</div><div class="val" id="v-hip">--°</div><div class="ref" id="r-hip"></div></div>
+      <div class="ang-card" data-k="elbow"><div class="lbl">Cotovelo</div><div class="val" id="v-elbow">--°</div><div class="ref" id="r-elbow"></div></div>
+      <div class="ang-card" data-k="torso"><div class="lbl">Tronco x horizontal</div><div class="val" id="v-torso">--°</div><div class="ref" id="r-torso"></div></div>
     </div>
     <div id="controls">
-      <button id="btnRecord">Iniciar captura</button>
+      <button id="btnCapturePhase">Capturar fase atual</button>
+      <button id="btnGoFront" class="secondary" disabled>Vista frontal →</button>
       <button id="btnReset" class="secondary">Reiniciar</button>
-      <button id="btnHistory" class="secondary">Histórico</button>
     </div>
   </div>
 
-  <div id="side-select">
-    <h2>Posicione a bike de lado e escolha o lado visível na câmera</h2>
+  <div class="screen" id="permScreen">
+    <h2>Bike Fit completo</h2>
+    <p>Vamos definir tipo de bike e perfil de uso, calibrar a escala real e capturar a pedalada de lado e de frente pra gerar um relatório completo com todos os ajustes.</p>
+    <p>Use um apoio/tripé. Câmera perpendicular, corpo todo visível.</p>
+    <button id="btnStart">Começar</button>
+    <button id="btnCompare" class="secondary">Comparar sessões salvas</button>
+  </div>
+
+  <div class="screen" id="bike-type" style="display:none">
+    <h2>Tipo de bike</h2>
     <div class="opts">
-      <div class="opt" id="optLeft"><div class="sym">◀︎</div>Lado esquerdo</div>
-      <div class="opt" id="optRight"><div class="sym">▶︎</div>Lado direito</div>
+      <div class="opt" data-v="speed"><div class="sym">🚴</div>Speed/estrada</div>
+      <div class="opt" data-v="mtb"><div class="sym">⛰</div>MTB</div>
+      <div class="opt" data-v="geral"><div class="sym">🔧</div>Genérico</div>
+    </div>
+    <button id="btnBikeNext" disabled>Continuar</button>
+  </div>
+
+  <div class="screen" id="profile-select" style="display:none">
+    <h2>Perfil desejado</h2>
+    <p>Isso ajusta as faixas ideais de ângulos e recomendações de ajuste.</p>
+    <div class="opts">
+      <div class="opt" data-v="conforto"><div class="sym">🛋</div>Conforto</div>
+      <div class="opt" data-v="equilibrado"><div class="sym">⚖️</div>Equilibrado</div>
+      <div class="opt" data-v="desempenho"><div class="sym">⚡</div>Desempenho</div>
+    </div>
+    <button id="btnProfileNext" disabled>Continuar</button>
+  </div>
+
+  <div class="screen" id="side-select" style="display:none">
+    <h2>Lado visível na câmera (vista lateral)</h2>
+    <div class="opts">
+      <div class="opt" id="optLeft"><div class="sym">◀︎</div>Esquerdo</div>
+      <div class="opt" id="optRight"><div class="sym">▶︎</div>Direito</div>
     </div>
   </div>
 
-  <div id="permScreen">
-    <h2>Bike Fit</h2>
-    <p>Este app usa a câmera para capturar seu movimento de pedalada e calcular os ângulos das articulações em tempo real, direto no celular.</p>
-    <p>Posicione o celular num tripé/apoio, de lado para a bike (perpendicular ao movimento), com todo o corpo visível.</p>
-    <button id="btnStart">Permitir câmera e começar</button>
+  <div class="screen" id="calib-input" style="display:none">
+    <h2>Calibração (vista lateral)</h2>
+    <p>Informe o diâmetro total da roda (aro+pneu) em mm. Estrada/gravel 700c ≈ 680mm. MTB 29" ≈ 740mm. 27,5" ≈ 705mm.</p>
+    <input type="number" id="wheelDiam" value="680" />
+    <button id="btnCalibNext">Continuar</button>
   </div>
+
+  <div class="screen" id="calib-tap" style="display:none">
+    <p style="position:absolute; top:80px; max-width:280px;">Toque no topo do pneu e depois na base (no chão).</p>
+    <button id="btnCalibDone" style="position:absolute; bottom:30px; display:none">Confirmar</button>
+  </div>
+
+  <div class="screen" id="front-intro" style="display:none">
+    <h2>Vista frontal</h2>
+    <p>Agora posicione o celular NA FRENTE da bike, na altura do guidão, olhando direto pro ciclista (de frente). Precisamos ver os dois pulsos e os dois joelhos.</p>
+    <p>Coloque algum objeto de largura conhecida no quadro (ex: uma folha A4 na horizontal = 297mm, ou uma régua) pra calibrar.</p>
+    <button id="btnFrontNext">Continuar</button>
+    <button id="btnSkipFront" class="secondary">Pular vista frontal</button>
+  </div>
+
+  <div class="screen" id="front-calib-input" style="display:none">
+    <h2>Largura do objeto de referência</h2>
+    <input type="number" id="refWidth" placeholder="ex: 297" value="297" />
+    <p>em milímetros</p>
+    <button id="btnFrontCalibNext">Continuar</button>
+  </div>
+
+  <div class="screen" id="front-calib-tap" style="display:none">
+    <p style="position:absolute; top:80px; max-width:280px;">Toque nas duas pontas do objeto de referência na tela.</p>
+    <button id="btnFrontCalibDone" style="position:absolute; bottom:30px; display:none">Confirmar</button>
+  </div>
+
+  <div class="screen" id="front-record" style="display:none">
+    <h2>Gravando vista frontal</h2>
+    <p>Pedale normalmente por uns 5 segundos olhando pra câmera (mãos no guidão).</p>
+    <button id="btnFrontRecord">Iniciar gravação (5s)</button>
+    <div id="frontTimer" style="font-size:28px; font-weight:700; display:none">5</div>
+  </div>
+
+  <div class="screen" id="tilt-intro" style="display:none">
+    <h2>Nível do selim</h2>
+    <p>Apoie o celular deitado (de costas, tela pra cima) sobre o topo do selim, alinhado com o sentido da bike (do bico à traseira). Mantenha parado.</p>
+    <button id="btnTiltMeasure">Medir nível</button>
+    <button id="btnSkipTilt" class="secondary">Pular esta etapa</button>
+    <div id="tiltReading" style="font-size:30px; font-weight:700; display:none"></div>
+    <button id="btnTiltConfirm" class="secondary" style="display:none">Usar esta leitura</button>
+  </div>
+
+  <div class="screen" id="compare-list" style="display:none; align-items:flex-start; justify-content:flex-start; text-align:left;">
+    <h2 style="text-align:center; width:100%;">Comparar sessões</h2>
+    <p style="text-align:center; width:100%;">Escolha 2 sessões salvas (antes / depois).</p>
+    <div id="compareListItems" style="width:100%; max-width:320px; display:flex; flex-direction:column; gap:8px;"></div>
+    <button id="btnDoCompare" disabled style="margin-top:10px;">Comparar selecionadas</button>
+    <button id="btnCompareBack" class="secondary">Voltar</button>
+  </div>
+
+  <div id="report" style="display:none"></div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/pose/pose.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 <script>
-if ("serviceWorker" in navigator) {
-  window.addEventListener("load", () => {
-    navigator.serviceWorker.register("sw.js").catch(() => {});
-  });
-}
+if ("serviceWorker" in navigator) window.addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(()=>{}));
 
 const video = document.getElementById("video");
 const canvas = document.getElementById("overlay");
 const ctx = canvas.getContext("2d");
 const statusEl = document.getElementById("status");
-const logEl = document.getElementById("log");
 
-let side = "right";
-let currentStream = null;
-let facing = "environment";
-let pose = null;
-let recording = false;
-let samples = [];
-let bestExtKnee = null;
-let bestHipAtTop = null;
+let bikeType = null, profile = null, side = "right";
+let currentStream = null, facing = "environment";
+let pose = null, lastLandmarks = null, rawLandmarks = null;
+let mmPerPixel = null, calibPoints = [];
+let activePhase = 0;
+const phases = [null, null, null];
+let frontMmPerPixel = null, frontCalibPoints = [];
+let frontSamples = [];
+let frontRecording = false;
+let frontResult = null;
+let mode = "lateral"; // lateral | frontal
+let saddleTilt = null; // { deg, dir }
 
 const LM = {
-  LEFT: { shoulder: 11, elbow: 13, wrist: 15, hip: 23, knee: 25, ankle: 27, foot: 31 },
-  RIGHT: { shoulder: 12, elbow: 14, wrist: 16, hip: 24, knee: 26, ankle: 28, foot: 32 }
+  LEFT: { shoulder:11, elbow:13, wrist:15, hip:23, knee:25, ankle:27, foot:31 },
+  RIGHT:{ shoulder:12, elbow:14, wrist:16, hip:24, knee:26, ankle:28, foot:32 }
 };
 
-function angleAt(a, b, c) {
-  const v1 = { x: a.x - b.x, y: a.y - b.y };
-  const v2 = { x: c.x - b.x, y: c.y - b.y };
-  const dot = v1.x * v2.x + v1.y * v2.y;
-  const m1 = Math.hypot(v1.x, v1.y);
-  const m2 = Math.hypot(v2.x, v2.y);
-  if (m1 === 0 || m2 === 0) return null;
-  const cos = Math.min(1, Math.max(-1, dot / (m1 * m2)));
-  return (Math.acos(cos) * 180) / Math.PI;
-}
+const IDEAL = {
+  conforto:   { kneeFlex:[32,42], hipTop:[45,55], elbow:[155,170], torsoLabel:"mais vertical (60–75° da horizontal)" },
+  equilibrado:{ kneeFlex:[27,35], hipTop:[40,50], elbow:[150,165], torsoLabel:"intermediário (40–55° da horizontal)" },
+  desempenho: { kneeFlex:[20,30], hipTop:[35,45], elbow:[145,160], torsoLabel:"mais horizontal/aero (25–40° da horizontal)" }
+};
 
-function angleWithHorizontal(a, b) {
-  const dx = b.x - a.x;
-  const dy = b.y - a.y;
-  let deg = Math.abs((Math.atan2(dy, dx) * 180) / Math.PI);
-  if (deg > 90) deg = 180 - deg;
+function angleAt(a,b,c){
+  const v1={x:a.x-b.x,y:a.y-b.y}, v2={x:c.x-b.x,y:c.y-b.y};
+  const dot=v1.x*v2.x+v1.y*v2.y, m1=Math.hypot(v1.x,v1.y), m2=Math.hypot(v2.x,v2.y);
+  if(m1===0||m2===0) return null;
+  const cos=Math.min(1,Math.max(-1,dot/(m1*m2)));
+  return (Math.acos(cos)*180)/Math.PI;
+}
+function angleWithHorizontal(a,b){
+  const dx=b.x-a.x, dy=b.y-a.y;
+  let deg=Math.abs((Math.atan2(dy,dx)*180)/Math.PI);
+  if(deg>90) deg=180-deg;
   return deg;
 }
-
-function setCard(id, val, goodMin, goodMax) {
-  const card = document.querySelector(`.ang-card[data-k="${id}"]`);
-  const out = document.getElementById("v-" + id);
-  if (val === null || isNaN(val)) {
-    out.textContent = "--°";
-    card.classList.remove("ok", "warn");
-    return;
-  }
-  out.textContent = val.toFixed(1) + "°";
-  card.classList.remove("ok", "warn");
-  if (goodMin !== undefined) {
-    if (val >= goodMin && val <= goodMax) card.classList.add("ok");
-    else card.classList.add("warn");
+function setCard(id,val,range){
+  const card=document.querySelector(`.ang-card[data-k="${id}"]`);
+  const out=document.getElementById("v-"+id);
+  const ref=document.getElementById("r-"+id);
+  if(range) ref.textContent = range.label || `ideal ${range[0]}–${range[1]}°`;
+  if(val===null||isNaN(val)){ out.textContent="--°"; card.classList.remove("ok","warn"); return; }
+  out.textContent=val.toFixed(1)+"°";
+  card.classList.remove("ok","warn");
+  if(range && range[0]!==undefined){
+    if(val>=range[0] && val<=range[1]) card.classList.add("ok"); else card.classList.add("warn");
   }
 }
 
-function onResults(results) {
+function onResults(results){
   canvas.width = video.videoWidth || canvas.clientWidth;
   canvas.height = video.videoHeight || canvas.clientHeight;
-  ctx.save();
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-  if (!results.poseLandmarks) {
-    ctx.restore();
-    return;
-  }
-
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  if(!results.poseLandmarks){ lastLandmarks=null; rawLandmarks=null; return; }
   const lm = results.poseLandmarks;
-  const pts = (id) => ({ x: lm[id].x * canvas.width, y: lm[id].y * canvas.height, score: lm[id].visibility });
-  const map = side === "right" ? LM.RIGHT : LM.LEFT;
+  rawLandmarks = lm;
+  const pts=(id)=>({x:lm[id].x*canvas.width, y:lm[id].y*canvas.height});
 
-  const shoulder = pts(map.shoulder);
-  const elbow = pts(map.elbow);
-  const wrist = pts(map.wrist);
-  const hip = pts(map.hip);
-  const knee = pts(map.knee);
-  const ankle = pts(map.ankle);
-  const foot = pts(map.foot);
+  if(mode==="lateral"){
+    const map = side==="right" ? LM.RIGHT : LM.LEFT;
+    const shoulder=pts(map.shoulder), elbow=pts(map.elbow), wrist=pts(map.wrist);
+    const hip=pts(map.hip), knee=pts(map.knee), ankle=pts(map.ankle), foot=pts(map.foot);
+    lastLandmarks = { shoulder, elbow, wrist, hip, knee, ankle, foot };
+    const bones=[[shoulder,elbow],[elbow,wrist],[shoulder,hip],[hip,knee],[knee,ankle],[ankle,foot]];
+    ctx.lineWidth=4; ctx.strokeStyle="#ff8a3d";
+    bones.forEach(([p1,p2])=>{ctx.beginPath();ctx.moveTo(p1.x,p1.y);ctx.lineTo(p2.x,p2.y);ctx.stroke();});
+    ctx.fillStyle="#5dcaa5";
+    [shoulder,elbow,wrist,hip,knee,ankle,foot].forEach(p=>{ctx.beginPath();ctx.arc(p.x,p.y,6,0,2*Math.PI);ctx.fill();});
 
-  // desenha esqueleto simplificado
-  const bones = [
-    [shoulder, elbow], [elbow, wrist],
-    [shoulder, hip], [hip, knee], [knee, ankle], [ankle, foot]
-  ];
-  ctx.lineWidth = 4;
-  ctx.strokeStyle = "#ff8a3d";
-  bones.forEach(([p1, p2]) => {
-    ctx.beginPath();
-    ctx.moveTo(p1.x, p1.y);
-    ctx.lineTo(p2.x, p2.y);
-    ctx.stroke();
-  });
-  ctx.fillStyle = "#5dcaa5";
-  [shoulder, elbow, wrist, hip, knee, ankle, foot].forEach((p) => {
-    ctx.beginPath();
-    ctx.arc(p.x, p.y, 6, 0, 2 * Math.PI);
-    ctx.fill();
-  });
+    const kneeAngle=angleAt(hip,knee,ankle);
+    const hipAngle=angleAt(shoulder,hip,knee);
+    const elbowAngle=angleAt(shoulder,elbow,wrist);
+    const torsoAngle=angleWithHorizontal(shoulder,hip);
+    const rg = IDEAL[profile];
+    setCard("knee",kneeAngle,rg.kneeFlex);
+    setCard("hip",hipAngle,rg.hipTop);
+    setCard("elbow",elbowAngle,rg.elbow);
+    setCard("torso",torsoAngle,{label:rg.torsoLabel});
+    lastLandmarks.angles = { kneeAngle, hipAngle, elbowAngle, torsoAngle };
 
-  const kneeAngle = angleAt(hip, knee, ankle);
-  const hipAngle = angleAt(shoulder, hip, knee);
-  const elbowAngle = angleAt(shoulder, elbow, wrist);
-  const torsoAngle = angleWithHorizontal(shoulder, hip);
+    calibPoints.forEach(p=>{ctx.beginPath();ctx.arc(p.x,p.y,7,0,2*Math.PI);ctx.fillStyle="#5dcaa5";ctx.fill();ctx.strokeStyle="#fff";ctx.lineWidth=2;ctx.stroke();});
+  } else {
+    // frontal: ambos os lados
+    const Lw=pts(LM.LEFT.wrist), Rw=pts(LM.RIGHT.wrist);
+    const Lk=pts(LM.LEFT.knee), Rk=pts(LM.RIGHT.knee);
+    const Lh=pts(LM.LEFT.hip), Rh=pts(LM.RIGHT.hip);
+    const La=pts(LM.LEFT.ankle), Ra=pts(LM.RIGHT.ankle);
+    lastLandmarks = { Lw,Rw,Lk,Rk,Lh,Rh,La,Ra };
+    ctx.fillStyle="#5dcaa5";
+    [Lw,Rw,Lk,Rk,Lh,Rh,La,Ra].forEach(p=>{ctx.beginPath();ctx.arc(p.x,p.y,6,0,2*Math.PI);ctx.fill();});
+    ctx.strokeStyle="#ff8a3d"; ctx.lineWidth=3;
+    [[Lh,Lk],[Lk,La],[Rh,Rk],[Rk,Ra],[Lw,Rw]].forEach(([p1,p2])=>{ctx.beginPath();ctx.moveTo(p1.x,p1.y);ctx.lineTo(p2.x,p2.y);ctx.stroke();});
 
-  setCard("knee", kneeAngle, 25, 35);
-  setCard("hip", hipAngle, 40, 50);
-  setCard("elbow", elbowAngle, 150, 165);
-  setCard("torso", torsoAngle);
+    frontCalibPoints.forEach(p=>{ctx.beginPath();ctx.arc(p.x,p.y,7,0,2*Math.PI);ctx.fillStyle="#5dcaa5";ctx.fill();ctx.strokeStyle="#fff";ctx.lineWidth=2;ctx.stroke();});
 
-  if (recording && kneeAngle !== null) {
-    samples.push({ t: performance.now(), knee: kneeAngle, hip: hipAngle, elbow: elbowAngle, torso: torsoAngle });
-    if (bestExtKnee === null || kneeAngle < bestExtKnee.knee) {
-      bestExtKnee = { knee: kneeAngle, hip: hipAngle, elbow: elbowAngle, torso: torsoAngle };
+    if(frontRecording){
+      const wristDist = Math.hypot(Lw.x-Rw.x, Lw.y-Rw.y);
+      const lineXatKnee_L = Lh.x + (La.x-Lh.x)*((Lk.y-Lh.y)/((La.y-Lh.y)||1));
+      const lineXatKnee_R = Rh.x + (Ra.x-Rh.x)*((Rk.y-Rh.y)/((Ra.y-Rh.y)||1));
+      const devL = Lk.x - lineXatKnee_L;
+      const devR = Rk.x - lineXatKnee_R;
+      frontSamples.push({ wristDist, devL, devR });
     }
   }
-
-  ctx.restore();
 }
 
-async function setupPose() {
-  pose = new Pose({
-    locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/pose/${file}`
-  });
-  pose.setOptions({
-    modelComplexity: 1,
-    smoothLandmarks: true,
-    enableSegmentation: false,
-    minDetectionConfidence: 0.5,
-    minTrackingConfidence: 0.5
-  });
+async function setupPose(){
+  pose = new Pose({ locateFile:(f)=>`https://cdn.jsdelivr.net/npm/@mediapipe/pose/${f}` });
+  pose.setOptions({ modelComplexity:1, smoothLandmarks:true, enableSegmentation:false, minDetectionConfidence:0.5, minTrackingConfidence:0.5 });
   pose.onResults(onResults);
 }
-
-async function startCamera() {
-  if (currentStream) {
-    currentStream.getTracks().forEach((t) => t.stop());
-  }
-  const constraints = {
-    video: { facingMode: facing, width: { ideal: 1280 }, height: { ideal: 720 } },
-    audio: false
-  };
-  currentStream = await navigator.mediaDevices.getUserMedia(constraints);
+async function startCamera(){
+  if(currentStream) currentStream.getTracks().forEach(t=>t.stop());
+  currentStream = await navigator.mediaDevices.getUserMedia({ video:{ facingMode:facing, width:{ideal:1280}, height:{ideal:720} }, audio:false });
   video.srcObject = currentStream;
   await video.play();
-  statusEl.textContent = "Detectando...";
+  statusEl.textContent="Detectando...";
   loop();
 }
-
-async function loop() {
-  if (video.readyState >= 2) {
-    await pose.send({ image: video });
-  }
+async function loop(){
+  if(video.readyState>=2) await pose.send({ image: video });
   requestAnimationFrame(loop);
 }
 
-document.getElementById("btnStart").addEventListener("click", async () => {
-  document.getElementById("permScreen").style.display = "none";
-  document.getElementById("side-select").style.display = "flex";
-});
-
-document.getElementById("optLeft").addEventListener("click", async () => {
-  side = "left";
-  document.getElementById("side-select").style.display = "none";
-  await setupPose();
-  await startCamera();
-});
-document.getElementById("optRight").addEventListener("click", async () => {
-  side = "right";
-  document.getElementById("side-select").style.display = "none";
-  await setupPose();
-  await startCamera();
-});
-
-document.getElementById("btnSwitchSide").addEventListener("click", () => {
-  side = side === "right" ? "left" : "right";
-});
-
-document.getElementById("btnSwitchCam").addEventListener("click", async () => {
-  facing = facing === "environment" ? "user" : "environment";
-  await startCamera();
-});
-
-document.getElementById("btnRecord").addEventListener("click", (e) => {
-  recording = !recording;
-  e.target.textContent = recording ? "Parar captura" : "Iniciar captura";
-  if (!recording) {
-    saveSession();
-  } else {
-    samples = [];
-    bestExtKnee = null;
-  }
-});
-
-document.getElementById("btnReset").addEventListener("click", () => {
-  samples = [];
-  bestExtKnee = null;
-  recording = false;
-  document.getElementById("btnRecord").textContent = "Iniciar captura";
-  ["knee", "hip", "elbow", "torso"].forEach((k) => setCard(k, null));
-});
-
-function saveSession() {
-  if (!bestExtKnee) return;
-  const sessions = JSON.parse(localStorage.getItem("bikefit_sessions") || "[]");
-  sessions.push({
-    date: new Date().toISOString(),
-    side,
-    samplesCount: samples.length,
-    bestExtKnee
-  });
-  localStorage.setItem("bikefit_sessions", JSON.stringify(sessions.slice(-30)));
+function show(id){
+  document.querySelectorAll(".screen").forEach(s=>s.style.display="none");
+  if(id!=="none") document.getElementById(id).style.display="flex";
 }
 
-document.getElementById("btnHistory").addEventListener("click", () => {
-  const sessions = JSON.parse(localStorage.getItem("bikefit_sessions") || "[]");
-  if (sessions.length === 0) {
-    alert("Nenhuma sessão salva ainda.");
+document.getElementById("btnStart").addEventListener("click", ()=> show("bike-type"));
+document.getElementById("btnCompare").addEventListener("click", ()=> openCompareList());
+document.getElementById("btnCompareBack").addEventListener("click", ()=> show("permScreen"));
+
+let selectedForCompare = [];
+function openCompareList(){
+  const sessions = JSON.parse(localStorage.getItem("bikefit_full_sessions") || "[]");
+  const container = document.getElementById("compareListItems");
+  selectedForCompare = [];
+  if(sessions.length === 0){
+    container.innerHTML = `<p style="text-align:center; color:#9aa;">Nenhuma sessão salva ainda. Faça uma captura completa e use "Salvar sessão" no relatório.</p>`;
+  } else {
+    container.innerHTML = sessions.map((s,i)=>{
+      const d = new Date(s.date);
+      return `<label style="display:flex; align-items:center; gap:8px; background:#1a1d22; border:1px solid #2a2d33; border-radius:8px; padding:10px;">
+        <input type="checkbox" data-i="${i}" class="cmpchk" />
+        <span style="font-size:13px;">${d.toLocaleDateString()} ${d.toLocaleTimeString()} — ${s.bikeType||"geral"} / ${s.profile}</span>
+      </label>`;
+    }).join("");
+    container.querySelectorAll(".cmpchk").forEach(cb=>{
+      cb.addEventListener("change", ()=>{
+        const idx = parseInt(cb.dataset.i);
+        if(cb.checked){
+          if(selectedForCompare.length >= 2){ cb.checked = false; return; }
+          selectedForCompare.push(idx);
+        } else {
+          selectedForCompare = selectedForCompare.filter(x=>x!==idx);
+        }
+        document.getElementById("btnDoCompare").disabled = selectedForCompare.length !== 2;
+      });
+    });
+  }
+  show("compare-list");
+}
+
+document.getElementById("btnDoCompare").addEventListener("click", ()=>{
+  const sessions = JSON.parse(localStorage.getItem("bikefit_full_sessions") || "[]");
+  const sorted = selectedForCompare.slice().sort((a,b)=>new Date(sessions[a].date) - new Date(sessions[b].date));
+  const before = sessions[sorted[0]], after = sessions[sorted[1]];
+  showComparison(before, after);
+});
+
+function diffRow(label, beforeVal, afterVal, unit){
+  if(beforeVal === undefined || afterVal === undefined || beforeVal === null || afterVal === null) return "";
+  const bNum = parseFloat(beforeVal), aNum = parseFloat(afterVal);
+  const delta = aNum - bNum;
+  const arrow = delta > 0.05 ? "▲" : (delta < -0.05 ? "▼" : "—");
+  const color = Math.abs(delta) < 0.05 ? "#9aa" : "#ff8a3d";
+  return `<tr>
+    <td class="k">${label}</td>
+    <td class="v">${bNum.toFixed(1)}${unit}</td>
+    <td class="v">${aNum.toFixed(1)}${unit}</td>
+    <td class="v" style="color:${color}">${arrow} ${Math.abs(delta).toFixed(1)}${unit}</td>
+  </tr>`;
+}
+
+function showComparison(before, after){
+  const bm = before.m, am = after.m;
+  let rows = "";
+  rows += diffRow("Joelho (parte baixa)", bm.kneeFlexBottom, am.kneeFlexBottom, "°");
+  rows += diffRow("Quadril (topo)", bm.hipTop, am.hipTop, "°");
+  rows += diffRow("Cotovelo", bm.elbowBar, am.elbowBar, "°");
+  rows += diffRow("Tronco x horizontal", bm.torsoBar, am.torsoBar, "°");
+  rows += diffRow("Altura do selim", bm.saddleHeight, am.saddleHeight, "mm");
+  rows += diffRow("Recuo do selim", bm.setback, am.setback, "mm");
+  rows += diffRow("Reach", bm.reach, am.reach, "mm");
+  rows += diffRow("Drop", bm.drop, am.drop, "mm");
+  if(before.saddleTilt && after.saddleTilt) rows += diffRow("Nível do selim", before.saddleTilt.deg, after.saddleTilt.deg, "°");
+  if(before.frontResult && after.frontResult){
+    rows += diffRow("Largura do guidão", before.frontResult.handlebarWidthMm, after.frontResult.handlebarWidthMm, "mm");
+    rows += diffRow("Desvio joelho esq.", before.frontResult.kneeDevLeftMm, after.frontResult.kneeDevLeftMm, "mm");
+    rows += diffRow("Desvio joelho dir.", before.frontResult.kneeDevRightMm, after.frontResult.kneeDevRightMm, "mm");
+  }
+
+  const html = `
+    <h2>Comparação antes / depois</h2>
+    <p class="note" style="margin-bottom:14px;">Antes: ${new Date(before.date).toLocaleString()} (${before.profile})<br/>Depois: ${new Date(after.date).toLocaleString()} (${after.profile})</p>
+    <table style="width:100%; font-size:12.5px; border-collapse:collapse;">
+      <tr style="border-bottom:1px solid #2a2d33;">
+        <td class="k" style="font-weight:600;">Métrica</td>
+        <td class="v" style="font-weight:600;">Antes</td>
+        <td class="v" style="font-weight:600;">Depois</td>
+        <td class="v" style="font-weight:600;">Variação</td>
+      </tr>
+      ${rows}
+    </table>
+    <p class="note" style="margin-top:14px;">▲/▼ mostram a direção da mudança, não necessariamente se é melhor ou pior — isso depende do que você estava buscando ajustar.</p>
+    <button class="closebtn secondary" id="btnCloseCompare">Fechar</button>
+  `;
+  document.getElementById("report").innerHTML = html;
+  document.getElementById("report").style.display = "block";
+  document.getElementById("btnCloseCompare").addEventListener("click", ()=>{
+    document.getElementById("report").style.display = "none";
+    show("permScreen");
+  });
+}
+
+function setupOptPicker(screenId, varSetter, nextBtnId){
+  const screen = document.getElementById(screenId);
+  screen.querySelectorAll(".opt").forEach(opt=>{
+    opt.addEventListener("click", ()=>{
+      screen.querySelectorAll(".opt").forEach(o=>o.classList.remove("sel"));
+      opt.classList.add("sel");
+      varSetter(opt.dataset.v);
+      document.getElementById(nextBtnId).disabled = false;
+    });
+  });
+}
+setupOptPicker("bike-type", v=>bikeType=v, "btnBikeNext");
+setupOptPicker("profile-select", v=>profile=v, "btnProfileNext");
+
+document.getElementById("btnBikeNext").addEventListener("click", ()=> show("profile-select"));
+document.getElementById("btnProfileNext").addEventListener("click", ()=> show("side-select"));
+
+document.getElementById("optLeft").addEventListener("click", async ()=>{ side="left"; await afterSideChosen(); });
+document.getElementById("optRight").addEventListener("click", async ()=>{ side="right"; await afterSideChosen(); });
+async function afterSideChosen(){
+  show("calib-input");
+  await setupPose();
+  await startCamera();
+}
+
+document.getElementById("btnCalibNext").addEventListener("click", ()=>{
+  show("calib-tap");
+  document.getElementById("calibTapHint").style.display="block";
+  document.getElementById("calibTapHint").textContent="Toque no topo do pneu, depois na base (no chão)";
+});
+
+canvas.addEventListener("click", (e)=>{
+  const rect = canvas.getBoundingClientRect();
+  const x=(e.clientX-rect.left)*(canvas.width/rect.width);
+  const y=(e.clientY-rect.top)*(canvas.height/rect.height);
+  if(document.getElementById("calib-tap").style.display!=="none" && calibPoints.length<2){
+    calibPoints.push({x,y});
+    if(calibPoints.length===2) document.getElementById("btnCalibDone").style.display="block";
+  }
+  if(document.getElementById("front-calib-tap").style.display!=="none" && frontCalibPoints.length<2){
+    frontCalibPoints.push({x,y});
+    if(frontCalibPoints.length===2) document.getElementById("btnFrontCalibDone").style.display="block";
+  }
+});
+
+document.getElementById("btnCalibDone").addEventListener("click", ()=>{
+  const diam = parseFloat(document.getElementById("wheelDiam").value)||680;
+  const dx=calibPoints[0].x-calibPoints[1].x, dy=calibPoints[0].y-calibPoints[1].y;
+  mmPerPixel = diam / Math.hypot(dx,dy);
+  document.getElementById("calibTapHint").style.display="none";
+  show("none");
+  document.getElementById("panel").style.display="block";
+  updatePhaseBar();
+});
+
+document.getElementById("btnSwitchSide").addEventListener("click", ()=>{ side = side==="right"?"left":"right"; });
+document.getElementById("btnSwitchCam").addEventListener("click", async ()=>{ facing = facing==="environment"?"user":"environment"; await startCamera(); });
+
+document.querySelectorAll(".phase").forEach(el=>{
+  el.addEventListener("click", ()=>{ activePhase=parseInt(el.dataset.p); updatePhaseBar(); });
+});
+function updatePhaseBar(){
+  document.querySelectorAll(".phase").forEach(el=>{
+    const p=parseInt(el.dataset.p);
+    el.classList.toggle("active", p===activePhase);
+    el.classList.toggle("done", !!phases[p]);
+  });
+}
+let sampling = false;
+document.getElementById("btnCapturePhase").addEventListener("click", ()=>{
+  if(sampling) return;
+  if(!lastLandmarks){ alert("Nenhuma pessoa detectada ainda."); return; }
+  sampling = true;
+  const btn = document.getElementById("btnCapturePhase");
+  const origText = btn.textContent;
+  const buffer = [];
+  const t0 = performance.now();
+  const collect = () => {
+    if(lastLandmarks) buffer.push(JSON.parse(JSON.stringify(lastLandmarks)));
+    const elapsed = performance.now() - t0;
+    btn.textContent = `Capturando... ${Math.max(0,(1.5-elapsed/1000)).toFixed(1)}s`;
+    if(elapsed < 1500){
+      requestAnimationFrame(collect);
+    } else {
+      phases[activePhase] = averageLandmarks(buffer);
+      btn.textContent = origText;
+      sampling = false;
+      if(activePhase<2){ activePhase++; }
+      updatePhaseBar();
+      document.getElementById("btnGoFront").disabled = !(phases[0]&&phases[1]&&phases[2]);
+    }
+  };
+  collect();
+});
+
+function averageLandmarks(buffer){
+  if(buffer.length === 0) return null;
+  const keys = Object.keys(buffer[0]).filter(k => k !== "angles");
+  const avg = {};
+  keys.forEach(k => {
+    avg[k] = {
+      x: buffer.reduce((s,b)=>s+b[k].x,0) / buffer.length,
+      y: buffer.reduce((s,b)=>s+b[k].y,0) / buffer.length
+    };
+  });
+  const angleKeys = Object.keys(buffer[0].angles || {});
+  avg.angles = {};
+  angleKeys.forEach(k => {
+    const vals = buffer.map(b=>b.angles[k]).filter(v=>v!==null && !isNaN(v));
+    avg.angles[k] = vals.length ? vals.reduce((s,v)=>s+v,0)/vals.length : null;
+  });
+  return avg;
+}
+document.getElementById("btnReset").addEventListener("click", ()=>{
+  phases[0]=phases[1]=phases[2]=null; activePhase=0; updatePhaseBar();
+  document.getElementById("btnGoFront").disabled=true;
+});
+
+document.getElementById("btnGoFront").addEventListener("click", ()=>{
+  document.getElementById("panel").style.display="none";
+  show("tilt-intro");
+});
+
+async function requestMotionPermission(){
+  if (typeof DeviceOrientationEvent !== "undefined" && typeof DeviceOrientationEvent.requestPermission === "function") {
+    try {
+      const res = await DeviceOrientationEvent.requestPermission();
+      return res === "granted";
+    } catch(e) { return false; }
+  }
+  return true;
+}
+
+document.getElementById("btnTiltMeasure").addEventListener("click", async ()=>{
+  const ok = await requestMotionPermission();
+  if(!ok){ alert("Permissão de sensores negada. Não é possível medir o nível sem acesso ao giroscópio."); return; }
+  const samples = [];
+  const handler = (e) => {
+    if(e.beta !== null) samples.push(e.beta);
+  };
+  window.addEventListener("deviceorientation", handler);
+  document.getElementById("btnTiltMeasure").textContent = "Medindo... fique parado";
+  setTimeout(()=>{
+    window.removeEventListener("deviceorientation", handler);
+    document.getElementById("btnTiltMeasure").textContent = "Medir nível";
+    if(samples.length === 0){
+      alert("Sensor de orientação não respondeu. Seu navegador pode não suportar, ou precisa estar em HTTPS.");
+      return;
+    }
+    const avg = samples.reduce((a,b)=>a+b,0) / samples.length;
+    let deg = avg;
+    if (deg > 90) deg = deg - 180;
+    if (deg < -90) deg = deg + 180;
+    const dir = deg > 0.3 ? "bico do selim apontando pra baixo" : (deg < -0.3 ? "bico do selim apontando pra cima" : "selim nivelado");
+    saddleTilt = { deg: Math.abs(deg), dir };
+    document.getElementById("tiltReading").textContent = `${Math.abs(deg).toFixed(1)}° — ${dir}`;
+    document.getElementById("tiltReading").style.display = "block";
+    document.getElementById("btnTiltConfirm").style.display = "block";
+  }, 2000);
+});
+
+document.getElementById("btnTiltConfirm").addEventListener("click", ()=> show("front-intro"));
+document.getElementById("btnSkipTilt").addEventListener("click", ()=>{ saddleTilt = null; show("front-intro"); });
+
+document.getElementById("btnFrontNext").addEventListener("click", ()=>{
+  mode="frontal";
+  show("front-calib-input");
+});
+document.getElementById("btnSkipFront").addEventListener("click", ()=>{
+  show("none");
+  buildAndShowReport();
+});
+document.getElementById("btnFrontCalibNext").addEventListener("click", ()=>{
+  show("front-calib-tap");
+  document.getElementById("calibTapHint").style.display="block";
+  document.getElementById("calibTapHint").textContent="Toque nas duas pontas do objeto de referência";
+});
+document.getElementById("btnFrontCalibDone").addEventListener("click", ()=>{
+  const w = parseFloat(document.getElementById("refWidth").value)||297;
+  const dx=frontCalibPoints[0].x-frontCalibPoints[1].x, dy=frontCalibPoints[0].y-frontCalibPoints[1].y;
+  frontMmPerPixel = w / Math.hypot(dx,dy);
+  document.getElementById("calibTapHint").style.display="none";
+  show("front-record");
+});
+document.getElementById("btnFrontRecord").addEventListener("click", ()=>{
+  frontSamples = [];
+  frontRecording = true;
+  document.getElementById("btnFrontRecord").style.display="none";
+  document.getElementById("frontTimer").style.display="block";
+  let t=5;
+  document.getElementById("frontTimer").textContent=t;
+  const iv = setInterval(()=>{
+    t--;
+    document.getElementById("frontTimer").textContent=t;
+    if(t<=0){
+      clearInterval(iv);
+      frontRecording=false;
+      finishFrontCapture();
+    }
+  },1000);
+});
+function finishFrontCapture(){
+  if(frontSamples.length===0){
+    alert("Não conseguimos detectar pulsos/joelhos suficientes. Tente de novo, mais perto da câmera.");
+    show("front-record");
+    document.getElementById("btnFrontRecord").style.display="block";
+    document.getElementById("frontTimer").style.display="none";
     return;
   }
-  const last = sessions.slice(-5).reverse();
-  const text = last
-    .map((s, i) => {
-      const d = new Date(s.date);
-      return `${d.toLocaleDateString()} ${d.toLocaleTimeString()} (lado ${s.side})\n` +
-        `Joelho mín: ${s.bestExtKnee.knee.toFixed(1)}°  Quadril: ${s.bestExtKnee.hip.toFixed(1)}°  ` +
-        `Cotovelo: ${s.bestExtKnee.elbow.toFixed(1)}°  Tronco: ${s.bestExtKnee.torso.toFixed(1)}°`;
-    })
-    .join("\n\n");
-  alert(text);
-});
+  const wristDists = frontSamples.map(s=>s.wristDist).sort((a,b)=>a-b);
+  const medianWrist = wristDists[Math.floor(wristDists.length/2)];
+  const maxDevL = Math.max(...frontSamples.map(s=>Math.abs(s.devL)));
+  const maxDevR = Math.max(...frontSamples.map(s=>Math.abs(s.devR)));
+  const signL = frontSamples.reduce((a,s)=>a+Math.sign(s.devL),0);
+  const signR = frontSamples.reduce((a,s)=>a+Math.sign(s.devR),0);
+  frontResult = {
+    handlebarWidthMm: medianWrist*frontMmPerPixel,
+    kneeDevLeftMm: maxDevL*frontMmPerPixel,
+    kneeDevLeftDir: signL<0 ? "varo (joelho pra fora)" : "valgo (joelho pra dentro)",
+    kneeDevRightMm: maxDevR*frontMmPerPixel,
+    kneeDevRightDir: signR<0 ? "valgo (joelho pra dentro)" : "varo (joelho pra fora)"
+  };
+  show("none");
+  buildAndShowReport();
+}
+
+function buildMeasurements(){
+  const p0=phases[0], p1=phases[1], p2=phases[2];
+  const mm=(px)=> mmPerPixel ? (px*mmPerPixel).toFixed(0) : "--";
+  const saddleHeightPx = Math.hypot(p0.hip.x-p0.ankle.x, p0.hip.y-p0.ankle.y);
+  const setbackPx = p1.knee.x - p1.ankle.x;
+  const reachPx = Math.abs(p2.hip.x - p2.wrist.x);
+  const dropPx = p2.wrist.y - p2.hip.y;
+  return {
+    kneeFlexBottom: p0.angles.kneeAngle,
+    hipTop: p1.angles.hipAngle,
+    elbowBar: p2.angles.elbowAngle,
+    torsoBar: p2.angles.torsoAngle,
+    saddleHeight: mm(saddleHeightPx),
+    setback: mm(Math.abs(setbackPx)),
+    setbackDir: setbackPx>5 ? "joelho na frente do eixo do pedal" : (setbackPx<-5 ? "joelho atrás do eixo do pedal" : "joelho aproximadamente sobre o eixo"),
+    reach: mm(reachPx),
+    drop: mm(Math.abs(dropPx)),
+    dropDir: dropPx>0 ? "guidão mais baixo que o selim" : "guidão mais alto que o selim"
+  };
+}
+
+function handlebarIdealRange(){
+  if(bikeType==="speed"){
+    return profile==="desempenho" ? "largura dos ombros ou levemente menor (mais aero)" :
+           profile==="conforto" ? "levemente mais larga que os ombros (mais estável)" :
+           "aprox. largura dos ombros (acromion a acromion)";
+  }
+  if(bikeType==="mtb"){
+    return profile==="desempenho" ? "720–800mm (mais controle em velocidade/trilha técnica)" :
+           profile==="conforto" ? "680–740mm (mais manobrável, menos esforço de ombro)" :
+           "700–780mm";
+  }
+  return "compatível com a largura dos ombros, ajustando pra cima se for MTB";
+}
+
+function recommendation(m){
+  const rg = IDEAL[profile];
+  const lines = [];
+  if(m.kneeFlexBottom < rg.kneeFlex[0]) lines.push(`Joelho com pouca flexão na parte baixa (${m.kneeFlexBottom.toFixed(1)}°, ideal ${rg.kneeFlex[0]}–${rg.kneeFlex[1]}° pro perfil ${profile}) — selim provavelmente alto. Considere baixar 3–5mm.`);
+  else if(m.kneeFlexBottom > rg.kneeFlex[1]) lines.push(`Joelho com flexão maior que o ideal (${m.kneeFlexBottom.toFixed(1)}°, ideal ${rg.kneeFlex[0]}–${rg.kneeFlex[1]}°) — selim provavelmente baixo. Considere subir 3–5mm.`);
+  else lines.push("Altura do selim dentro da faixa ideal pro perfil escolhido.");
+
+  if(m.hipTop < rg.hipTop[0]) lines.push("Ângulo de quadril fechado no topo do pedal — pode indicar selim muito à frente/alto, gerando compressão e perda de potência.");
+  else if(m.hipTop > rg.hipTop[1]) lines.push("Ângulo de quadril mais aberto que o ideal pro perfil — pode estar perdendo geração de força.");
+
+  if(m.elbowBar < rg.elbow[0]) lines.push("Cotovelo muito fletido — alcance pode estar curto ou guidão baixo demais pro perfil escolhido.");
+  else if(m.elbowBar > rg.elbow[1]) lines.push("Cotovelo quase travado/reto — alcance longo ou guidão alto; cotovelo deveria ficar levemente flexionado, funcionando como amortecedor.");
+
+  lines.push(`Tronco a ${m.torsoBar.toFixed(1)}° da horizontal — pro perfil ${profile}, o ideal é algo ${rg.torsoLabel}.`);
+  lines.push(`Recuo do selim: ${m.setbackDir} (~${m.setback}mm). Influencia entrega de potência e conforto no joelho.`);
+  lines.push(`Guidão: ${m.dropDir} (~${m.drop}mm), reach estimado de ${m.reach}mm entre quadril e mão.`);
+
+  if(frontResult){
+    lines.push(`Largura do guidão medida: ~${frontResult.handlebarWidthMm.toFixed(0)}mm. Faixa de referência pro seu perfil/tipo de bike: ${handlebarIdealRange()}.`);
+    const maxDev = Math.max(frontResult.kneeDevLeftMm, frontResult.kneeDevRightMm);
+    if(maxDev > 25) lines.push(`Foi detectado desvio lateral relevante do joelho durante a pedalada (esquerdo: ${frontResult.kneeDevLeftDir} ~${frontResult.kneeDevLeftMm.toFixed(0)}mm; direito: ${frontResult.kneeDevRightDir} ~${frontResult.kneeDevRightMm.toFixed(0)}mm). Joelho que entra/sai muito da linha quadril-tornozelo pode indicar desalinhamento de cleat, fraqueza de glúteo médio ou necessidade de ajuste de Q-factor/espaçador. Vale avaliação com profissional se for recorrente.`);
+    else lines.push("Alinhamento do joelho durante a pedalada (vista frontal) dentro de uma faixa aceitável, sem desvios laterais relevantes.");
+  } else {
+    lines.push("Vista frontal não capturada — largura de guidão e alinhamento de joelho (valgo/varo) não avaliados nesta sessão.");
+  }
+  if(saddleTilt){
+    if(saddleTilt.deg < 1) lines.push("Selim nivelado — dentro da margem aceitável (menos de 1°).");
+    else if(saddleTilt.deg < 3) lines.push(`Selim com inclinação leve de ${saddleTilt.deg.toFixed(1)}° (${saddleTilt.dir}). Geralmente aceitável, mas se sentir dormência ou pressão, ajuste.`);
+    else lines.push(`Selim desnivelado em ${saddleTilt.deg.toFixed(1)}° (${saddleTilt.dir}). Acima de 3° costuma causar desconforto (pressão excessiva na frente se bico baixo, ou escorregão pra frente se bico alto). Recomenda-se corrigir.`);
+  } else {
+    lines.push("Nivelamento do selim não medido nesta sessão.");
+  }
+  return lines;
+}
+
+function buildAndShowReport(){
+  const m = buildMeasurements();
+  const recs = recommendation(m);
+  const html = `
+    <h2>Relatório de Bike Fit — ${bikeType||"geral"} / perfil ${profile}</h2>
+    <div class="sec"><h3>Ângulos (vista lateral)</h3><table>
+      <tr><td class="k">Joelho (parte baixa do pedal)</td><td class="v">${m.kneeFlexBottom.toFixed(1)}°</td></tr>
+      <tr><td class="k">Quadril (topo do pedal)</td><td class="v">${m.hipTop.toFixed(1)}°</td></tr>
+      <tr><td class="k">Cotovelo (guidão)</td><td class="v">${m.elbowBar.toFixed(1)}°</td></tr>
+      <tr><td class="k">Tronco x horizontal</td><td class="v">${m.torsoBar.toFixed(1)}°</td></tr>
+    </table></div>
+    <div class="sec"><h3>Medidas estimadas</h3><table>
+      <tr><td class="k">Altura do selim</td><td class="v">${m.saddleHeight}mm</td></tr>
+      <tr><td class="k">Recuo do selim</td><td class="v">${m.setback}mm</td></tr>
+      <tr><td class="k">Reach</td><td class="v">${m.reach}mm</td></tr>
+      <tr><td class="k">Drop</td><td class="v">${m.drop}mm</td></tr>
+      ${saddleTilt ? `<tr><td class="k">Nível do selim</td><td class="v">${saddleTilt.deg.toFixed(1)}° (${saddleTilt.dir})</td></tr>` : ""}
+      ${frontResult ? `<tr><td class="k">Largura do guidão</td><td class="v">${frontResult.handlebarWidthMm.toFixed(0)}mm</td></tr>
+      <tr><td class="k">Desvio joelho esq.</td><td class="v">${frontResult.kneeDevLeftMm.toFixed(0)}mm</td></tr>
+      <tr><td class="k">Desvio joelho dir.</td><td class="v">${frontResult.kneeDevRightMm.toFixed(0)}mm</td></tr>` : ""}
+    </table>
+    <p class="note">Ângulos têm boa confiabilidade (independem de escala). Medidas em mm dependem da calibração e alinhamento da câmera — use como referência inicial, não como medida de oficina.</p>
+    </div>
+    <div class="sec"><h3>Recomendações (perfil ${profile})</h3>
+      ${recs.map(r=>`<p class="note" style="margin-bottom:6px;">• ${r}</p>`).join("")}
+    </div>
+    <button class="closebtn secondary" id="btnClosePdf">Fechar</button>
+    <button class="closebtn secondary" id="btnSaveSession">Salvar sessão</button>
+    <button class="closebtn" id="btnExportPdf">Exportar PDF</button>
+  `;
+  document.getElementById("report").innerHTML = html;
+  document.getElementById("report").style.display="block";
+  document.getElementById("btnClosePdf").addEventListener("click", ()=>{ document.getElementById("report").style.display="none"; });
+  document.getElementById("btnExportPdf").addEventListener("click", ()=>exportPdf(m,recs));
+  document.getElementById("btnSaveSession").addEventListener("click", ()=>{
+    saveSession(m);
+    alert("Sessão salva. Você pode compará-la depois na tela inicial.");
+  });
+}
+
+function saveSession(m){
+  const sessions = JSON.parse(localStorage.getItem("bikefit_full_sessions") || "[]");
+  sessions.push({
+    date: new Date().toISOString(),
+    bikeType, profile, m, frontResult, saddleTilt
+  });
+  localStorage.setItem("bikefit_full_sessions", JSON.stringify(sessions.slice(-20)));
+}
+
+function exportPdf(m, recs){
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+  let y=18;
+  doc.setFontSize(16); doc.text("Relatório de Bike Fit", 14, y); y+=8;
+  doc.setFontSize(11); doc.text(`Tipo: ${bikeType||"geral"}  |  Perfil: ${profile}  |  ${new Date().toLocaleString()}`, 14, y); y+=10;
+
+  doc.setFontSize(13); doc.text("Ângulos (vista lateral)", 14, y); y+=7;
+  doc.setFontSize(11);
+  [["Joelho (parte baixa)",m.kneeFlexBottom.toFixed(1)+"°"],["Quadril (topo)",m.hipTop.toFixed(1)+"°"],["Cotovelo",m.elbowBar.toFixed(1)+"°"],["Tronco x horizontal",m.torsoBar.toFixed(1)+"°"]]
+    .forEach(([k,v])=>{ doc.text(`${k}: ${v}`,14,y); y+=6; });
+
+  y+=4; doc.setFontSize(13); doc.text("Medidas estimadas",14,y); y+=7; doc.setFontSize(11);
+  const rows = [["Altura do selim",m.saddleHeight+"mm"],["Recuo do selim",m.setback+"mm ("+m.setbackDir+")"],["Reach",m.reach+"mm"],["Drop",m.drop+"mm ("+m.dropDir+")"]];
+  if(saddleTilt) rows.push(["Nível do selim", saddleTilt.deg.toFixed(1)+"° ("+saddleTilt.dir+")"]);
+  if(frontResult) rows.push(["Largura do guidão", frontResult.handlebarWidthMm.toFixed(0)+"mm"],["Desvio joelho esq.", frontResult.kneeDevLeftMm.toFixed(0)+"mm "+frontResult.kneeDevLeftDir],["Desvio joelho dir.", frontResult.kneeDevRightMm.toFixed(0)+"mm "+frontResult.kneeDevRightDir]);
+  rows.forEach(([k,v])=>{ doc.text(`${k}: ${v}`,14,y); y+=6; if(y>270){doc.addPage();y=18;} });
+
+  y+=4; doc.setFontSize(13); doc.text("Recomendações",14,y); y+=7; doc.setFontSize(10);
+  recs.forEach(r=>{
+    const split = doc.splitTextToSize("- "+r, 180);
+    doc.text(split,14,y); y += split.length*5+2;
+    if(y>270){ doc.addPage(); y=18; }
+  });
+  doc.save("bikefit-relatorio.pdf");
+}
 </script>
 </body>
 </html>
