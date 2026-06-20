@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no" />
+<title>Bike Fit</title>
+<link rel="manifest" href="manifest.json" />
+<meta name="theme-color" content="#0b0d10" />
+<link rel="apple-touch-icon" href="icon-192.png" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    width: 100%; height: 100%;
+    background: #0b0d10; color: #eee;
+    font-family: -apple-system, Roboto, Arial, sans-serif;
+    overflow: hidden;
+    -webkit-user-select: none; user-select: none;
+  }
+  #app { position: relative; width: 100%; height: 100%; }
+  video, canvas#overlay {
+    position: absolute; top: 0; left: 0;
+    width: 100%; height: 100%;
+    object-fit: cover;
+  }
+  video { transform: scaleX(1); }
+
+  #topbar {
+    position: absolute; top: 0; left: 0; right: 0;
+    display: flex; justify-content: space-between; align-items: center;
+    padding: env(safe-area-inset-top, 12px) 14px 8px 14px;
+    background: linear-gradient(180deg, rgba(0,0,0,.55), rgba(0,0,0,0));
+    z-index: 10;
+  }
+  #topbar h1 { font-size: 15px; font-weight: 600; letter-spacing: .3px; }
+  #status { font-size: 11px; color: #9aa; }
+
+  #panel {
+    position: absolute; bottom: 0; left: 0; right: 0;
+    background: rgba(15,17,20,.92);
+    border-top: 1px solid #2a2d33;
+    padding: 10px 14px calc(env(safe-area-inset-bottom, 10px) + 10px) 14px;
+    z-index: 10;
+  }
+  .angles {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+  .ang-card {
+    background: #1a1d22;
+    border: 1px solid #2a2d33;
+    border-radius: 10px;
+    padding: 8px 10px;
+  }
+  .ang-card .lbl { font-size: 11px; color: #9aa; }
+  .ang-card .val { font-size: 20px; font-weight: 700; color: #ff8a3d; }
+  .ang-card .ref { font-size: 10px; color: #6c7078; }
+  .ang-card.ok .val { color: #5dcaa5; }
+  .ang-card.warn .val { color: #e24b4a; }
+
+  #controls { display: flex; gap: 8px; }
+  button {
+    flex: 1;
+    background: #ff8a3d; color: #1a1100;
+    border: none; border-radius: 10px;
+    padding: 12px 8px; font-size: 14px; font-weight: 700;
+    -webkit-tap-highlight-color: transparent;
+  }
+  button.secondary { background: #2a2d33; color: #eee; }
+  button:disabled { opacity: .45; }
+
+  #side {
+    position: absolute; top: 0; right: 0; bottom: 0;
+    width: 78px;
+    display: flex; flex-direction: column; align-items: center;
+    justify-content: center; gap: 10px;
+    z-index: 9; pointer-events: none;
+  }
+  .sidebtn {
+    pointer-events: all;
+    width: 56px; height: 56px; border-radius: 50%;
+    background: rgba(20,22,26,.78); border: 1px solid #2a2d33;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px; color: #eee;
+  }
+
+  #captureFlash {
+    position: absolute; inset: 0; background: #fff; opacity: 0;
+    pointer-events: none; z-index: 20;
+  }
+
+  #log {
+    position: absolute; top: 50px; left: 14px;
+    max-width: 60%;
+    font-size: 11px; color: #9aa;
+    background: rgba(0,0,0,.4); padding: 4px 8px; border-radius: 6px;
+    z-index: 10; display: none;
+  }
+
+  #permScreen {
+    position: absolute; inset: 0; background: #0b0d10;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 14px; padding: 24px; text-align: center; z-index: 30;
+  }
+  #permScreen p { color: #9aa; font-size: 13px; line-height: 1.5; max-width: 280px; }
+  #permScreen button { width: 200px; }
+
+  #side-select {
+    position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+    background: #0b0d10; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 16px; z-index: 25;
+    padding: 24px;
+  }
+  #side-select h2 { font-size: 16px; font-weight: 600; }
+  #side-select .opts { display: flex; gap: 10px; }
+  #side-select .opt {
+    width: 120px; padding: 18px 10px; background: #1a1d22; border: 1px solid #2a2d33;
+    border-radius: 12px; text-align: center;
+  }
+  #side-select .opt .sym { font-size: 28px; margin-bottom: 6px; }
+</style>
+</head>
+<body>
+<div id="app">
+  <video id="video" autoplay muted playsinline></video>
+  <canvas id="overlay"></canvas>
+  <div id="captureFlash"></div>
+
+  <div id="topbar">
+    <h1>Bike Fit</h1>
+    <div id="status">Carregando modelo…</div>
+  </div>
+
+  <div id="log"></div>
+
+  <div id="side">
+    <div class="sidebtn" id="btnSwitchCam" role="button" aria-label="Trocar câmera">⟲</div>
+    <div class="sidebtn" id="btnSwitchSide" role="button" aria-label="Trocar lado">L/R</div>
+  </div>
+
+  <div id="panel">
+    <div class="angles" id="angles">
+      <div class="ang-card" data-k="knee">
+        <div class="lbl">Joelho (extensão máx.)</div>
+        <div class="val" id="v-knee">--°</div>
+        <div class="ref">ideal 25–35°</div>
+      </div>
+      <div class="ang-card" data-k="hip">
+        <div class="lbl">Quadril (no pedal mais alto)</div>
+        <div class="val" id="v-hip">--°</div>
+        <div class="ref">ideal 40–50°</div>
+      </div>
+      <div class="ang-card" data-k="elbow">
+        <div class="lbl">Cotovelo</div>
+        <div class="val" id="v-elbow">--°</div>
+        <div class="ref">ideal 150–165°</div>
+      </div>
+      <div class="ang-card" data-k="torso">
+        <div class="lbl">Tronco (com horizontal)</div>
+        <div class="val" id="v-torso">--°</div>
+        <div class="ref">depende do estilo</div>
+      </div>
+    </div>
+    <div id="controls">
+      <button id="btnRecord">Iniciar captura</button>
+      <button id="btnReset" class="secondary">Reiniciar</button>
+      <button id="btnHistory" class="secondary">Histórico</button>
+    </div>
+  </div>
+
+  <div id="side-select">
+    <h2>Posicione a bike de lado e escolha o lado visível na câmera</h2>
+    <div class="opts">
+      <div class="opt" id="optLeft"><div class="sym">◀︎</div>Lado esquerdo</div>
+      <div class="opt" id="optRight"><div class="sym">▶︎</div>Lado direito</div>
+    </div>
+  </div>
+
+  <div id="permScreen">
+    <h2>Bike Fit</h2>
+    <p>Este app usa a câmera para capturar seu movimento de pedalada e calcular os ângulos das articulações em tempo real, direto no celular.</p>
+    <p>Posicione o celular num tripé/apoio, de lado para a bike (perpendicular ao movimento), com todo o corpo visível.</p>
+    <button id="btnStart">Permitir câmera e começar</button>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/pose/pose.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
+<script>
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("sw.js").catch(() => {});
+  });
+}
+
+const video = document.getElementById("video");
+const canvas = document.getElementById("overlay");
+const ctx = canvas.getContext("2d");
+const statusEl = document.getElementById("status");
+const logEl = document.getElementById("log");
+
+let side = "right";
+let currentStream = null;
+let facing = "environment";
+let pose = null;
+let recording = false;
+let samples = [];
+let bestExtKnee = null;
+let bestHipAtTop = null;
+
+const LM = {
+  LEFT: { shoulder: 11, elbow: 13, wrist: 15, hip: 23, knee: 25, ankle: 27, foot: 31 },
+  RIGHT: { shoulder: 12, elbow: 14, wrist: 16, hip: 24, knee: 26, ankle: 28, foot: 32 }
+};
+
+function angleAt(a, b, c) {
+  const v1 = { x: a.x - b.x, y: a.y - b.y };
+  const v2 = { x: c.x - b.x, y: c.y - b.y };
+  const dot = v1.x * v2.x + v1.y * v2.y;
+  const m1 = Math.hypot(v1.x, v1.y);
+  const m2 = Math.hypot(v2.x, v2.y);
+  if (m1 === 0 || m2 === 0) return null;
+  const cos = Math.min(1, Math.max(-1, dot / (m1 * m2)));
+  return (Math.acos(cos) * 180) / Math.PI;
+}
+
+function angleWithHorizontal(a, b) {
+  const dx = b.x - a.x;
+  const dy = b.y - a.y;
+  let deg = Math.abs((Math.atan2(dy, dx) * 180) / Math.PI);
+  if (deg > 90) deg = 180 - deg;
+  return deg;
+}
+
+function setCard(id, val, goodMin, goodMax) {
+  const card = document.querySelector(`.ang-card[data-k="${id}"]`);
+  const out = document.getElementById("v-" + id);
+  if (val === null || isNaN(val)) {
+    out.textContent = "--°";
+    card.classList.remove("ok", "warn");
+    return;
+  }
+  out.textContent = val.toFixed(1) + "°";
+  card.classList.remove("ok", "warn");
+  if (goodMin !== undefined) {
+    if (val >= goodMin && val <= goodMax) card.classList.add("ok");
+    else card.classList.add("warn");
+  }
+}
+
+function onResults(results) {
+  canvas.width = video.videoWidth || canvas.clientWidth;
+  canvas.height = video.videoHeight || canvas.clientHeight;
+  ctx.save();
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  if (!results.poseLandmarks) {
+    ctx.restore();
+    return;
+  }
+
+  const lm = results.poseLandmarks;
+  const pts = (id) => ({ x: lm[id].x * canvas.width, y: lm[id].y * canvas.height, score: lm[id].visibility });
+  const map = side === "right" ? LM.RIGHT : LM.LEFT;
+
+  const shoulder = pts(map.shoulder);
+  const elbow = pts(map.elbow);
+  const wrist = pts(map.wrist);
+  const hip = pts(map.hip);
+  const knee = pts(map.knee);
+  const ankle = pts(map.ankle);
+  const foot = pts(map.foot);
+
+  // desenha esqueleto simplificado
+  const bones = [
+    [shoulder, elbow], [elbow, wrist],
+    [shoulder, hip], [hip, knee], [knee, ankle], [ankle, foot]
+  ];
+  ctx.lineWidth = 4;
+  ctx.strokeStyle = "#ff8a3d";
+  bones.forEach(([p1, p2]) => {
+    ctx.beginPath();
+    ctx.moveTo(p1.x, p1.y);
+    ctx.lineTo(p2.x, p2.y);
+    ctx.stroke();
+  });
+  ctx.fillStyle = "#5dcaa5";
+  [shoulder, elbow, wrist, hip, knee, ankle, foot].forEach((p) => {
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, 6, 0, 2 * Math.PI);
+    ctx.fill();
+  });
+
+  const kneeAngle = angleAt(hip, knee, ankle);
+  const hipAngle = angleAt(shoulder, hip, knee);
+  const elbowAngle = angleAt(shoulder, elbow, wrist);
+  const torsoAngle = angleWithHorizontal(shoulder, hip);
+
+  setCard("knee", kneeAngle, 25, 35);
+  setCard("hip", hipAngle, 40, 50);
+  setCard("elbow", elbowAngle, 150, 165);
+  setCard("torso", torsoAngle);
+
+  if (recording && kneeAngle !== null) {
+    samples.push({ t: performance.now(), knee: kneeAngle, hip: hipAngle, elbow: elbowAngle, torso: torsoAngle });
+    if (bestExtKnee === null || kneeAngle < bestExtKnee.knee) {
+      bestExtKnee = { knee: kneeAngle, hip: hipAngle, elbow: elbowAngle, torso: torsoAngle };
+    }
+  }
+
+  ctx.restore();
+}
+
+async function setupPose() {
+  pose = new Pose({
+    locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/pose/${file}`
+  });
+  pose.setOptions({
+    modelComplexity: 1,
+    smoothLandmarks: true,
+    enableSegmentation: false,
+    minDetectionConfidence: 0.5,
+    minTrackingConfidence: 0.5
+  });
+  pose.onResults(onResults);
+}
+
+async function startCamera() {
+  if (currentStream) {
+    currentStream.getTracks().forEach((t) => t.stop());
+  }
+  const constraints = {
+    video: { facingMode: facing, width: { ideal: 1280 }, height: { ideal: 720 } },
+    audio: false
+  };
+  currentStream = await navigator.mediaDevices.getUserMedia(constraints);
+  video.srcObject = currentStream;
+  await video.play();
+  statusEl.textContent = "Detectando...";
+  loop();
+}
+
+async function loop() {
+  if (video.readyState >= 2) {
+    await pose.send({ image: video });
+  }
+  requestAnimationFrame(loop);
+}
+
+document.getElementById("btnStart").addEventListener("click", async () => {
+  document.getElementById("permScreen").style.display = "none";
+  document.getElementById("side-select").style.display = "flex";
+});
+
+document.getElementById("optLeft").addEventListener("click", async () => {
+  side = "left";
+  document.getElementById("side-select").style.display = "none";
+  await setupPose();
+  await startCamera();
+});
+document.getElementById("optRight").addEventListener("click", async () => {
+  side = "right";
+  document.getElementById("side-select").style.display = "none";
+  await setupPose();
+  await startCamera();
+});
+
+document.getElementById("btnSwitchSide").addEventListener("click", () => {
+  side = side === "right" ? "left" : "right";
+});
+
+document.getElementById("btnSwitchCam").addEventListener("click", async () => {
+  facing = facing === "environment" ? "user" : "environment";
+  await startCamera();
+});
+
+document.getElementById("btnRecord").addEventListener("click", (e) => {
+  recording = !recording;
+  e.target.textContent = recording ? "Parar captura" : "Iniciar captura";
+  if (!recording) {
+    saveSession();
+  } else {
+    samples = [];
+    bestExtKnee = null;
+  }
+});
+
+document.getElementById("btnReset").addEventListener("click", () => {
+  samples = [];
+  bestExtKnee = null;
+  recording = false;
+  document.getElementById("btnRecord").textContent = "Iniciar captura";
+  ["knee", "hip", "elbow", "torso"].forEach((k) => setCard(k, null));
+});
+
+function saveSession() {
+  if (!bestExtKnee) return;
+  const sessions = JSON.parse(localStorage.getItem("bikefit_sessions") || "[]");
+  sessions.push({
+    date: new Date().toISOString(),
+    side,
+    samplesCount: samples.length,
+    bestExtKnee
+  });
+  localStorage.setItem("bikefit_sessions", JSON.stringify(sessions.slice(-30)));
+}
+
+document.getElementById("btnHistory").addEventListener("click", () => {
+  const sessions = JSON.parse(localStorage.getItem("bikefit_sessions") || "[]");
+  if (sessions.length === 0) {
+    alert("Nenhuma sessão salva ainda.");
+    return;
+  }
+  const last = sessions.slice(-5).reverse();
+  const text = last
+    .map((s, i) => {
+      const d = new Date(s.date);
+      return `${d.toLocaleDateString()} ${d.toLocaleTimeString()} (lado ${s.side})\n` +
+        `Joelho mín: ${s.bestExtKnee.knee.toFixed(1)}°  Quadril: ${s.bestExtKnee.hip.toFixed(1)}°  ` +
+        `Cotovelo: ${s.bestExtKnee.elbow.toFixed(1)}°  Tronco: ${s.bestExtKnee.torso.toFixed(1)}°`;
+    })
+    .join("\n\n");
+  alert(text);
+});
+</script>
+</body>
+</html>
